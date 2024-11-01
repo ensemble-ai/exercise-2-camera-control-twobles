@@ -1,9 +1,9 @@
-class_name PushBox
+class_name AutoScroll
 extends CameraControllerBase
 
-@export var box_width: float = 10.0
-@export var box_height: float = 10.0
-
+@export var top_left := Vector2(-7.5, -7.5)
+@export var bottom_right := Vector2(7.5, 7.5)
+@export var autoscroll_speed := Vector3(15.0, 0.0, 0.0)
 
 func _ready() -> void:
 	super()
@@ -16,27 +16,32 @@ func _process(delta: float) -> void:
 	
 	if draw_camera_logic:
 		draw_logic()
+		
+	var camera_movement = autoscroll_speed * delta
 	
-	var tpos = target.global_position
-	var cpos = global_position
+	global_transform.origin += camera_movement
+	target.global_transform.origin += camera_movement
+		
+	var cpos = global_transform.origin
 	
-	#boundary checks
-	#left
-	var diff_between_left_edges = (tpos.x - target.WIDTH / 2.0) - (cpos.x - box_width / 2.0)
-	if diff_between_left_edges < 0:
-		global_position.x += diff_between_left_edges
-	#right
-	var diff_between_right_edges = (tpos.x + target.WIDTH / 2.0) - (cpos.x + box_width / 2.0)
-	if diff_between_right_edges > 0:
-		global_position.x += diff_between_right_edges
-	#top
-	var diff_between_top_edges = (tpos.z - target.HEIGHT / 2.0) - (cpos.z - box_height / 2.0)
-	if diff_between_top_edges < 0:
-		global_position.z += diff_between_top_edges
-	#bottom
-	var diff_between_bottom_edges = (tpos.z + target.HEIGHT / 2.0) - (cpos.z + box_height / 2.0)
-	if diff_between_bottom_edges > 0:
-		global_position.z += diff_between_bottom_edges
+	var rect_min_x = cpos.x + top_left[0]
+	var rect_max_x = cpos.x + bottom_right[0]
+	var rect_min_z = cpos.z + top_left[1]
+	var rect_max_z = cpos.z + bottom_right[1]
+	
+	var tpos = target.global_transform.origin
+	
+	if tpos.x < rect_min_x:
+		tpos.x = rect_min_x
+	elif tpos.x > rect_max_x:
+		tpos.x = rect_max_x
+	
+	if tpos.z < rect_min_z:
+		tpos.z = rect_min_z
+	elif tpos.z > rect_max_z:
+		tpos.z = rect_max_z
+	
+	target.global_transform.origin = tpos
 		
 	super(delta)
 
@@ -49,10 +54,10 @@ func draw_logic() -> void:
 	mesh_instance.mesh = immediate_mesh
 	mesh_instance.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	
-	var left: float = -box_width / 2.0
-	var right: float = box_width / 2.0
-	var top: float = -box_height / 2.0
-	var bottom: float = box_height / 2.0
+	var left: float = top_left[0]
+	var right: float = bottom_right[0]
+	var top: float = top_left[1]
+	var bottom: float = bottom_right[1]
 	
 	immediate_mesh.surface_begin(Mesh.PRIMITIVE_LINES, material)
 	immediate_mesh.surface_add_vertex(Vector3(right, 0.0, top))

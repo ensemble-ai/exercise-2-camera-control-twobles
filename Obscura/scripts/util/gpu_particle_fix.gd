@@ -1,5 +1,6 @@
 extends GPUParticles3D
-@export var enabled : bool:
+
+@export var enabled: bool:
 	set(value):
 		enabled = value
 		if is_inside_tree():
@@ -7,9 +8,11 @@ extends GPUParticles3D
 		last_emitted = Time.get_ticks_usec()
 	get:
 		return enabled
-var old_transform : Transform3D
-var old_transform_time : int
-var last_emitted : int
+	
+var old_transform: Transform3D
+var old_transform_time: int
+var last_emitted: int
+
 
 func _process(_delta: float) -> void:
 	if not enabled:
